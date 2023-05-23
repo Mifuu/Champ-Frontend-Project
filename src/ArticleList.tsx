@@ -1,4 +1,23 @@
-export default function ArticleList() {
+import { useEffect, useState } from "react";
+
+import { Article, MultipleArticlesResponse } from "typing";
+
+const ArticleList = () => {
+
+  const [data, setData] = useState<MultipleArticlesResponse | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const fetch1 = await fetchArticles();
+        setData(fetch1);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchData();
+  }, []);
+
   return (
     <>
       <nav className="navbar navbar-light">
@@ -65,49 +84,12 @@ export default function ArticleList() {
                 </ul>
               </div>
 
-              <div className="article-preview">
-                <div className="article-meta">
-                  <a href="/#/profile/ericsimmons">
-                    <img src="http://i.imgur.com/Qr71crq.jpg" />
-                  </a>
-                  <div className="info">
-                    <a href="/#/profile/ericsimmons" className="author">
-                      Eric Simons
-                    </a>
-                    <span className="date">January 20th</span>
-                  </div>
-                  <button className="btn btn-outline-primary btn-sm pull-xs-right">
-                    <i className="ion-heart" /> 29
-                  </button>
-                </div>
-                <a href="/#/how-to-build-webapps-that-scale" className="preview-link">
-                  <h1>How to build webapps that scale</h1>
-                  <p>This is the description for the post.</p>
-                  <span>Read more...</span>
-                </a>
-              </div>
+              {data === null ? 
+                <p>Loading articles...</p>
+              :
+                <RenderFeed {...data as MultipleArticlesResponse}/>
+              }
 
-              <div className="article-preview">
-                <div className="article-meta">
-                  <a href="/#/profile/albertpai">
-                    <img src="http://i.imgur.com/N4VcUeJ.jpg" />
-                  </a>
-                  <div className="info">
-                    <a href="/#/profile/albertpai" className="author">
-                      Albert Pai
-                    </a>
-                    <span className="date">January 20th</span>
-                  </div>
-                  <button className="btn btn-outline-primary btn-sm pull-xs-right">
-                    <i className="ion-heart" /> 32
-                  </button>
-                </div>
-                <a href="/#/the-song-you-wont-ever-stop-singing" className="preview-link">
-                  <h1>The song you won&lsquo;t ever stop singing. No matter how hard you try.</h1>
-                  <p>This is the description for the post.</p>
-                  <span>Read more...</span>
-                </a>
-              </div>
             </div>
 
             <div className="col-md-3">
@@ -160,3 +142,73 @@ export default function ArticleList() {
     </>
   );
 }
+
+const RenderFeed = (data: MultipleArticlesResponse) => {
+
+  
+
+  /*
+  const data: Article = {
+    slug: string,
+    title: string,
+    description: string,
+    body: string,
+    tagList: string[],
+    createdAt: string,
+    updatedAt: string,
+    favorited: boolean,
+    favoritesCount: number,
+    author: Profile
+  }
+  */
+
+  return <>{data.articles.map((item) => {
+    return (
+      <div className="article-preview" key={item.slug}>
+        <div className="article-meta">
+          <a href={`/#/profile/${item.author.username}`}>
+            {(item.author.image === "") ? 
+            <img src="http://i.imgur.com/Qr71crq.jpg" />
+            :
+            <img src={item.author.image} />
+            }
+          </a>
+          <div className="info">
+            <a href={`/#/profile/${item.author.username}`} className="author">
+              {item.author.username}
+            </a>
+            <span className="date">{formatDate(item.createdAt)}</span>
+          </div>
+          <button className="btn btn-outline-primary btn-sm pull-xs-right">
+            <i className="ion-heart" /> {item.favoritesCount}
+          </button>
+        </div>
+        <a href={`/#/${item.slug}`} className="preview-link">
+          <h1>{item.title}</h1>
+          <p>{item.description}</p>
+          <span>Read more...</span>
+        </a>
+      </div>
+    )
+  })
+  }</>
+}
+
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const formattedDate = date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  return formattedDate;
+}
+
+async function fetchArticles(): Promise<MultipleArticlesResponse> {
+  const response = await fetch('http://localhost:3000/api/articles');
+  const jsonData = await response.json();
+  console.log(jsonData);
+  return jsonData as MultipleArticlesResponse;
+}
+
+export default ArticleList;
