@@ -1,5 +1,6 @@
 import React from "react";
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
+import NavBar from "NavBar";
 
 import Article from "./Article";
 import ArticleList from "./ArticleList";
@@ -12,6 +13,7 @@ import Settings from "./Settings";
 function App() {
   return (
     <Router>
+      <NavBar/>
       <Switch>
         <Route path="/editor" exact component={Editor} />
         <Route path="/editor/:slug" exact component={Editor} />
