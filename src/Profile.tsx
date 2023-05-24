@@ -1,58 +1,101 @@
+import { useEffect, useState } from "react";
+
+import { User, MultipleArticlesResponse, Profile as ProfileType } from "typing";
+import { formatDate } from "ArticleList";
+
 export default function Profile() {
+
+  const user = window.location.href.split('/').pop();
+
+  const [isFavoritedMode, setIsFavoritedMode] = useState(false);
+  const [fetched, setFetched] = useState(false);
+  const [profile, setProfile] = useState<ProfileType | null>(null);
+  const [data, setData] = useState<MultipleArticlesResponse | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (isFavoritedMode) {
+          const fetch1 = await fetchFavoritedArticles();
+          setData(fetch1); 
+          const fetch2 = await fetchProfile();
+          console.log(fetch2);
+          setProfile(fetch2);
+          setFetched(true);
+        } else {
+          const fetch1 = await fetchMyArticles();
+          setData(fetch1); 
+          const fetch2 = await fetchProfile();
+          console.log(fetch2);
+          setProfile(fetch2);
+          setFetched(true);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchData();
+  }, [isFavoritedMode]);
+
+  const handleSelectMy = (event: any) => {
+    event.preventDefault();
+    setFetched(false);
+    setIsFavoritedMode(false);
+  }
+
+  const handleSelectFavorite = (event: any) => {
+    event.preventDefault();
+    setFetched(false);
+    setIsFavoritedMode(true);
+  }
+
+  async function fetchFavoritedArticles(): Promise<MultipleArticlesResponse> {
+    const response = await fetch(`http://localhost:3000/api/articles?favorited=${user}`);
+    const jsonData = await response.json();
+    console.log(jsonData);
+    return jsonData as MultipleArticlesResponse;
+  }
+  
+  async function fetchMyArticles(): Promise<MultipleArticlesResponse> {
+    const response = await fetch(`http://localhost:3000/api/articles?author=${user}`);
+    const jsonData = await response.json();
+    console.log(jsonData);
+    return jsonData as MultipleArticlesResponse;
+  }
+
+  async function fetchProfile(): Promise<ProfileType> {
+    const response = await fetch(`http://localhost:3000/api/profiles/${user}`);
+    const jsonData = await response.json();
+    console.log(jsonData);
+    return jsonData.profile as ProfileType;
+  }
+
   return (
     <>
-      <nav className="navbar navbar-light">
-        <div className="container">
-          <a className="navbar-brand" href="/#">
-            conduit
-          </a>
-          <ul className="nav navbar-nav pull-xs-right">
-            <li className="nav-item">
-              {/* Add "active" class when you're on that page" */}
-              <a className="nav-link active" href="/#">
-                Home
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/#/editor">
-                <i className="ion-compose" />
-                &nbsp;New Article
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/#/settings">
-                <i className="ion-gear-a" />
-                &nbsp;Settings
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/#/login">
-                Sign in
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/#/register">
-                Sign up
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
 
       <div className="profile-page">
         <div className="user-info">
           <div className="container">
             <div className="row">
               <div className="col-xs-12 col-md-10 offset-md-1">
-                <img src="http://i.imgur.com/Qr71crq.jpg" className="user-img" />
-                <h4>Eric Simons</h4>
+                {profile?.image === null || profile?.image === "" ?
+                  <img 
+                    src="http://i.imgur.com/Qr71crq.jpg" 
+                    className="user-img" 
+                  />
+                :
+                  <img 
+                    src={profile?.image as string}
+                    className="user-img" 
+                  />
+                }
+                <h4>{profile?.username}</h4>
                 <p>
-                  Cofounder @GoThinkster, lived in Aol&lsquo;s HQ for a few months, kinda looks like Peeta from the
-                  Hunger Games
+                  {profile?.bio}
                 </p>
                 <button className="btn btn-sm btn-outline-secondary action-btn">
                   <i className="ion-plus-round" />
-                  &nbsp; Follow Eric Simons
+                  &nbsp; Follow {profile?.username}
                 </button>
               </div>
             </div>
@@ -65,65 +108,30 @@ export default function Profile() {
               <div className="articles-toggle">
                 <ul className="nav nav-pills outline-active">
                   <li className="nav-item">
-                    <a className="nav-link active" href="">
+                    <a 
+                      className={!isFavoritedMode ? "nav-link active" : "nav-link"}
+                      onClick={handleSelectMy}
+                    >
                       My Articles
                     </a>
                   </li>
                   <li className="nav-item">
-                    <a className="nav-link" href="">
+                    <a
+                      className={isFavoritedMode ? "nav-link active" : "nav-link"} 
+                      onClick={handleSelectFavorite}
+                    >
                       Favorited Articles
                     </a>
                   </li>
                 </ul>
               </div>
 
-              <div className="article-preview">
-                <div className="article-meta">
-                  <a href="/#/profile/ericsimmons">
-                    <img src="http://i.imgur.com/Qr71crq.jpg" />
-                  </a>
-                  <div className="info">
-                    <a href="/#/profile/ericsimmons" className="author">
-                      Eric Simons
-                    </a>
-                    <span className="date">January 20th</span>
-                  </div>
-                  <button className="btn btn-outline-primary btn-sm pull-xs-right">
-                    <i className="ion-heart" /> 29
-                  </button>
-                </div>
-                <a href="/#/how-to-build-webapps-that-scale" className="preview-link">
-                  <h1>How to build webapps that scale</h1>
-                  <p>This is the description for the post.</p>
-                  <span>Read more...</span>
-                </a>
-              </div>
+              {!fetched ? 
+                <p>Loading articles...</p>
+              :
+                <RenderArticles {...data as MultipleArticlesResponse}/>
+              }
 
-              <div className="article-preview">
-                <div className="article-meta">
-                  <a href="/#/profile/albertpai">
-                    <img src="http://i.imgur.com/N4VcUeJ.jpg" />
-                  </a>
-                  <div className="info">
-                    <a href="/#/profile/albertpai" className="author">
-                      Albert Pai
-                    </a>
-                    <span className="date">January 20th</span>
-                  </div>
-                  <button className="btn btn-outline-primary btn-sm pull-xs-right">
-                    <i className="ion-heart" /> 32
-                  </button>
-                </div>
-                <a href="/#/the-song-you-wont-ever-stop-singing" className="preview-link">
-                  <h1>The song you won&lsquo;t ever stop singing. No matter how hard you try.</h1>
-                  <p>This is the description for the post.</p>
-                  <span>Read more...</span>
-                  <ul className="tag-list">
-                    <li className="tag-default tag-pill tag-outline">Music</li>
-                    <li className="tag-default tag-pill tag-outline">Song</li>
-                  </ul>
-                </a>
-              </div>
             </div>
           </div>
         </div>
@@ -142,4 +150,55 @@ export default function Profile() {
       </footer>
     </>
   );
+}
+
+const RenderArticles = (data: MultipleArticlesResponse) => {
+
+  /*
+  const data: Article = {
+    slug: string,
+    title: string,
+    description: string,
+    body: string,
+    tagList: string[],
+    createdAt: string,
+    updatedAt: string,
+    favorited: boolean,
+    favoritesCount: number,
+    author: Profile
+  }
+  */
+
+  return <>{data.articles.map((item) => {
+    return (
+      <>
+        <div className="article-preview" key={item.slug}>
+          <div className="article-meta">
+            <a href={`/#/profile/${item.author.username}`}>
+              {(item.author.image === "") ? 
+              <img src="http://i.imgur.com/Qr71crq.jpg" />
+              :
+              <img src={item.author.image} />
+              }
+            </a>
+            <div className="info">
+              <a href={`/#/profile/${item.author.username}`} className="author">
+                {item.author.username}
+              </a>
+              <span className="date">{formatDate(item.createdAt)}</span>
+            </div>
+            <button className="btn btn-outline-primary btn-sm pull-xs-right">
+              <i className="ion-heart" /> {item.favoritesCount}
+            </button>
+          </div>
+          <a href={`/#/${item.slug}`} className="preview-link">
+            <h1>{item.title}</h1>
+            <p>{item.description}</p>
+            <span>Read more...</span>
+          </a>
+        </div>
+      </>
+    )
+  })
+  }</>
 }
