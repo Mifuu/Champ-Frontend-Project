@@ -2,10 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-const NavBar = () => {
+const NavBar = ( props: any ) => {
   const [currentID, setCurrentID] = useState(0);
 
-  if (localStorage.getItem("authToken") !== undefined) {
+  if (props.isLoggedIn === true) {
     return (
       <nav className="navbar navbar-light">
         <div className="container">

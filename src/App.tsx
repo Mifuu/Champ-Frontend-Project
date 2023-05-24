@@ -12,19 +12,41 @@ import Profile from "./Profile";
 import Settings from "./Settings";
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  console.log(isLoggedIn);
+
+  function handleLogin() {
+    setIsLoggedIn(true);
+  }
+
+  function handleLogout() {
+    setIsLoggedIn(false);
+  }
 
   return (
     <Router>
-      <NavBar />
+      <NavBar isLoggedIn={isLoggedIn}/>
       <Switch>
         <Route path="/editor" exact component={Editor} />
         <Route path="/editor/:slug" exact component={Editor} />
-        <Route path="/login" exact component={LoginRegister} />
+        <Route 
+          path="/login" 
+          exact 
+          render={(props) => (
+            <LoginRegister {...props} handleLogin={handleLogin} />
+          )}
+        />
         <Route path="/logout" exact component={Logout} />
         <Route path="/profile/:username" exact component={Profile} />
         <Route path="/profile/:username/favorites" exact component={Profile} />
         <Route path="/register" exact component={LoginRegister} />
-        <Route path="/settings" exact component={Settings} />
+        <Route 
+          path="/settings" 
+          exact 
+          render={(props) => (
+            <Settings {...props} handleLogout={handleLogout} />
+          )}
+        />
         <Route path="/:slug" exact component={Article} />
         <Route path="/" component={ArticleList} />
       </Switch>

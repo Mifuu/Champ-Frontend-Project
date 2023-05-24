@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 
 import { UpdateUser as UpdateUserType, User } from "typing";
 
-export default function Settings() {
+const Settings = ( props: any ) => {
   const [email,setEmail] = useState(localStorage.getItem("email") as string);
   const [username,setUsername] = useState(localStorage.getItem("username") as string);
   const [bio,setBio] = useState(localStorage.getItem("bio") as string);
@@ -56,8 +56,9 @@ export default function Settings() {
   }
 
 
-  const handleLogout = () => {
+  const handleLogoutButton = () => {
     localStorage.clear();
+    props.handleLogout();
 
     history.push('/');
   }
@@ -116,7 +117,7 @@ export default function Settings() {
                 </fieldset>
               </form>
               <hr />
-              <a className="btn btn-outline-danger" onClick={handleLogout}>
+              <a className="btn btn-outline-danger" onClick={handleLogoutButton}>
                 Or click here to logout.
               </a>
             </div>
@@ -138,3 +139,5 @@ export default function Settings() {
     </>
   );
 }
+
+export default Settings;

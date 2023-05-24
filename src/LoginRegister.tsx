@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 
 import { User } from "typing";
 
-export default function LoginRegister(onLoggedIn: any) {
+export default function LoginRegister( props: any ) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -39,6 +39,7 @@ export default function LoginRegister(onLoggedIn: any) {
         localStorage.setItem('username', item.username);
         localStorage.setItem('bio', item.bio);
         localStorage.setItem('image', item.image);
+        props.handleLogin();
   
         history.push('/');
       } else {
