@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 
 import { User } from "typing";
 
-export default function LoginRegister() {
+export default function LoginRegister(onLoggedIn: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 

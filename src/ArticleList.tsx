@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { Article, MultipleArticlesResponse } from "typing";
 
 const ArticleList = () => {
-
+  const [fetched, setFetched] = useState(false);
   const [data, setData] = useState<MultipleArticlesResponse | null>(null);
+  const [isGlobalMode, setIsGlobalMode] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -16,7 +17,27 @@ const ArticleList = () => {
       }
     }
     fetchData();
-  }, []);
+  }, [fetched]);
+
+  async function fetchArticles(): Promise<MultipleArticlesResponse> {
+    if (isGlobalMode) {
+      const response = await fetch('http://localhost:3000/api/articles');
+      const jsonData = await response.json();
+      console.log(jsonData);
+      return jsonData as MultipleArticlesResponse;
+    } else {
+      const response = await fetch('http://localhost:3000/api/articles/feed', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const jsonData = await response.json();
+      console.log(jsonData);
+      return jsonData as MultipleArticlesResponse;
+    }
+  }
 
   return (
     <>
@@ -34,12 +55,18 @@ const ArticleList = () => {
               <div className="feed-toggle">
                 <ul className="nav nav-pills outline-active">
                   <li className="nav-item">
-                    <a className="nav-link disabled" href="">
+                    <a 
+                      className={!isGlobalMode ? "nav-link active"  : "nav-link disabled" }
+                      onClick={() => {setIsGlobalMode(false); setData(null); setFetched(!fetched);}}
+                    >
                       Your Feed
                     </a>
                   </li>
                   <li className="nav-item">
-                    <a className="nav-link active" href="">
+                    <a 
+                      className={isGlobalMode ? "nav-link active"  : "nav-link disabled" }
+                      onClick={() => {setIsGlobalMode(true); setData(null); setFetched(!fetched);}}
+                    >
                       Global Feed
                     </a>
                   </li>
@@ -123,6 +150,11 @@ const RenderFeed = (data: MultipleArticlesResponse) => {
     author: Profile
   }
   */
+ if (data === undefined || data === null || data.articles === undefined) {
+  return <>
+    <p>No data...</p>
+  </>
+ }
 
   return <>{data.articles.map((item) => {
     return (
@@ -164,13 +196,6 @@ export function formatDate(dateString: string): string {
     year: "numeric",
   });
   return formattedDate;
-}
-
-async function fetchArticles(): Promise<MultipleArticlesResponse> {
-  const response = await fetch('http://localhost:3000/api/articles');
-  const jsonData = await response.json();
-  console.log(jsonData);
-  return jsonData as MultipleArticlesResponse;
 }
 
 export default ArticleList;

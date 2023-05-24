@@ -1,6 +1,7 @@
 import React from "react";
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
 import NavBar from "NavBar";
+import { useState, useEffect } from "react";
 
 import Article from "./Article";
 import ArticleList from "./ArticleList";
@@ -11,9 +12,10 @@ import Profile from "./Profile";
 import Settings from "./Settings";
 
 function App() {
+
   return (
     <Router>
-      <NavBar/>
+      <NavBar />
       <Switch>
         <Route path="/editor" exact component={Editor} />
         <Route path="/editor/:slug" exact component={Editor} />
