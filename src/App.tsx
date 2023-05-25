@@ -12,7 +12,7 @@ import Profile from "./Profile";
 import Settings from "./Settings";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("authToken") !== undefined ? true : false);
   console.log(isLoggedIn);
 
   function handleLogin() {
@@ -48,7 +48,13 @@ function App() {
           )}
         />
         <Route path="/:slug" exact component={Article} />
-        <Route path="/" component={ArticleList} />
+        <Route 
+          path="/" 
+          exact 
+          render={(props) => (
+            <ArticleList {...props} isLoggedIn={isLoggedIn} />
+          )}
+        />
       </Switch>
     </Router>
   );

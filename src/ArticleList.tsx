@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 
 import { Article, MultipleArticlesResponse } from "typing";
 
-const ArticleList = () => {
+const ArticleList = ( props: any ) => {
   const [fetched, setFetched] = useState(false);
   const [data, setData] = useState<MultipleArticlesResponse | null>(null);
-  const [isGlobalMode, setIsGlobalMode] = useState(false);
+  const [isGlobalMode, setIsGlobalMode] = useState(props.isLoggedIn ? false : true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,7 +21,13 @@ const ArticleList = () => {
 
   async function fetchArticles(): Promise<MultipleArticlesResponse> {
     if (isGlobalMode) {
-      const response = await fetch('http://localhost:3000/api/articles');
+      const response = await fetch('http://localhost:3000/api/articles', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const jsonData = await response.json();
       console.log(jsonData);
       return jsonData as MultipleArticlesResponse;
@@ -36,6 +42,95 @@ const ArticleList = () => {
       const jsonData = await response.json();
       console.log(jsonData);
       return jsonData as MultipleArticlesResponse;
+    }
+  }
+
+  const RenderFeed = (data: MultipleArticlesResponse) => {
+
+  
+
+    /*
+    const data: Article = {
+      slug: string,
+      title: string,
+      description: string,
+      body: string,
+      tagList: string[],
+      createdAt: string,
+      updatedAt: string,
+      favorited: boolean,
+      favoritesCount: number,
+      author: Profile
+    }
+    */
+   if (data === undefined || data === null || data.articles === undefined) {
+    return <>
+      <p>No data...</p>
+    </>
+   }
+  
+    return <>{data.articles.map((item) => {
+      return (
+        <div className="article-preview" key={item.slug}>
+          <div className="article-meta">
+            <a href={`/#/profile/${item.author.username}`}>
+              {(item.author.image === "") ? 
+              <img src="http://i.imgur.com/Qr71crq.jpg" />
+              :
+              <img src={item.author.image} />
+              }
+            </a>
+            <div className="info">
+              <a href={`/#/profile/${item.author.username}`} className="author">
+                {item.author.username}
+              </a>
+              <span className="date">{formatDate(item.createdAt)}</span>
+            </div>
+            <button 
+              className={item.favorited ? "btn btn-primary btn-sm pull-xs-right" : "btn btn-outline-primary btn-sm pull-xs-right"}
+              onClick={item.favorited ? () => handleUnfavorite(item.slug) : () => handleFavorite(item.slug)}
+            >
+              <i className="ion-heart" /> {item.favoritesCount}
+            </button>
+          </div>
+          <a href={`/#/${item.slug}`} className="preview-link">
+            <h1>{item.title}</h1>
+            <p>{item.description}</p>
+            <span>Read more...</span>
+          </a>
+        </div>
+      )
+    })
+    }</>
+  }
+
+  const handleFavorite = (slug: string) => {
+    try {
+      const response = fetch(`http://localhost:3000/api/articles/${slug}/favorite`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setFetched(!fetched);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const handleUnfavorite = (slug: string) => {
+    try {
+      const response = fetch(`http://localhost:3000/api/articles/${slug}/favorite`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setFetched(!fetched);
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -54,14 +149,16 @@ const ArticleList = () => {
             <div className="col-md-9">
               <div className="feed-toggle">
                 <ul className="nav nav-pills outline-active">
-                  <li className="nav-item">
+                  {props.isLoggedIn &&
+                    <li className="nav-item">
                     <a 
                       className={!isGlobalMode ? "nav-link active"  : "nav-link disabled" }
                       onClick={() => {setIsGlobalMode(false); setData(null); setFetched(!fetched);}}
                     >
                       Your Feed
                     </a>
-                  </li>
+                    </li>
+                  }
                   <li className="nav-item">
                     <a 
                       className={isGlobalMode ? "nav-link active"  : "nav-link disabled" }
@@ -130,62 +227,6 @@ const ArticleList = () => {
       </footer>
     </>
   );
-}
-
-const RenderFeed = (data: MultipleArticlesResponse) => {
-
-  
-
-  /*
-  const data: Article = {
-    slug: string,
-    title: string,
-    description: string,
-    body: string,
-    tagList: string[],
-    createdAt: string,
-    updatedAt: string,
-    favorited: boolean,
-    favoritesCount: number,
-    author: Profile
-  }
-  */
- if (data === undefined || data === null || data.articles === undefined) {
-  return <>
-    <p>No data...</p>
-  </>
- }
-
-  return <>{data.articles.map((item) => {
-    return (
-      <div className="article-preview" key={item.slug}>
-        <div className="article-meta">
-          <a href={`/#/profile/${item.author.username}`}>
-            {(item.author.image === "") ? 
-            <img src="http://i.imgur.com/Qr71crq.jpg" />
-            :
-            <img src={item.author.image} />
-            }
-          </a>
-          <div className="info">
-            <a href={`/#/profile/${item.author.username}`} className="author">
-              {item.author.username}
-            </a>
-            <span className="date">{formatDate(item.createdAt)}</span>
-          </div>
-          <button className="btn btn-outline-primary btn-sm pull-xs-right">
-            <i className="ion-heart" /> {item.favoritesCount}
-          </button>
-        </div>
-        <a href={`/#/${item.slug}`} className="preview-link">
-          <h1>{item.title}</h1>
-          <p>{item.description}</p>
-          <span>Read more...</span>
-        </a>
-      </div>
-    )
-  })
-  }</>
 }
 
 export function formatDate(dateString: string): string {
