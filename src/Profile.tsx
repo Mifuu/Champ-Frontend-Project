@@ -35,7 +35,7 @@ export default function Profile() {
       }
     }
     fetchData();
-  }, [isFavoritedMode]);
+  }, [isFavoritedMode, fetched]);
 
   const handleSelectMy = (event: any) => {
     event.preventDefault();
@@ -47,6 +47,36 @@ export default function Profile() {
     event.preventDefault();
     setFetched(false);
     setIsFavoritedMode(true);
+  }
+
+  const handleFollow = (username: string) => {
+    try {
+      const response = fetch(`http://localhost:3000/api/profiles/${username}/follow`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setFetched(!fetched);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const handleUnfollow = (username: string) => {
+    try {
+      const response = fetch(`http://localhost:3000/api/profiles/${username}/follow`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setFetched(!fetched);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async function fetchFavoritedArticles(): Promise<MultipleArticlesResponse> {
@@ -76,7 +106,13 @@ export default function Profile() {
   }
 
   async function fetchProfile(): Promise<ProfileType> {
-    const response = await fetch(`http://localhost:3000/api/profiles/${user}`);
+    const response = await fetch(`http://localhost:3000/api/profiles/${user}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+        'Content-Type': 'application/json'
+      }
+    });
     const jsonData = await response.json();
     console.log(jsonData);
     return jsonData.profile as ProfileType;
@@ -189,10 +225,15 @@ export default function Profile() {
                 <p>
                   {profile?.bio}
                 </p>
-                <button className="btn btn-sm btn-outline-secondary action-btn">
-                  <i className="ion-plus-round" />
-                  &nbsp; Follow {profile?.username}
-                </button>
+                {profile?.username != localStorage.getItem("username") &&
+                  <button 
+                    className= {profile?.following ? "btn btn-sm btn-secondary action-btn" : "btn btn-outline-primary btn-sm pull-xs-right"}
+                    onClick={profile?.following ? () => {handleUnfollow(profile?.username)} : () => {handleFollow(profile?.username as string)}}
+                  >
+                    <i className="ion-plus-round" />
+                    &nbsp; {profile?.following ? "Unfollow" : "Follow"} {profile?.username}
+                  </button>
+                }
               </div>
             </div>
           </div>

@@ -47,22 +47,6 @@ const ArticleList = ( props: any ) => {
 
   const RenderFeed = (data: MultipleArticlesResponse) => {
 
-  
-
-    /*
-    const data: Article = {
-      slug: string,
-      title: string,
-      description: string,
-      body: string,
-      tagList: string[],
-      createdAt: string,
-      updatedAt: string,
-      favorited: boolean,
-      favoritesCount: number,
-      author: Profile
-    }
-    */
    if (data === undefined || data === null || data.articles === undefined) {
     return <>
       <p>No data...</p>
