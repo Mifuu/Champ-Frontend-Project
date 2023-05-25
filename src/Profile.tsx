@@ -50,14 +50,26 @@ export default function Profile() {
   }
 
   async function fetchFavoritedArticles(): Promise<MultipleArticlesResponse> {
-    const response = await fetch(`http://localhost:3000/api/articles?favorited=${user}`);
+    const response = await fetch(`http://localhost:3000/api/articles?favorited=${user}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+        'Content-Type': 'application/json'
+      }
+    });
     const jsonData = await response.json();
     console.log(jsonData);
     return jsonData as MultipleArticlesResponse;
   }
   
   async function fetchMyArticles(): Promise<MultipleArticlesResponse> {
-    const response = await fetch(`http://localhost:3000/api/articles?author=${user}`);
+    const response = await fetch(`http://localhost:3000/api/articles?author=${user}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+        'Content-Type': 'application/json'
+      }
+    });
     const jsonData = await response.json();
     console.log(jsonData);
     return jsonData as MultipleArticlesResponse;
@@ -68,6 +80,90 @@ export default function Profile() {
     const jsonData = await response.json();
     console.log(jsonData);
     return jsonData.profile as ProfileType;
+  }
+
+  const RenderArticles = (data: MultipleArticlesResponse) => {
+
+    /*
+    const data: Article = {
+      slug: string,
+      title: string,
+      description: string,
+      body: string,
+      tagList: string[],
+      createdAt: string,
+      updatedAt: string,
+      favorited: boolean,
+      favoritesCount: number,
+      author: Profile
+    }
+    */
+
+    return <>{data.articles.map((item) => {
+      return (
+        <>
+          <div className="article-preview" key={item.slug}>
+            <div className="article-meta">
+              <a href={`/#/profile/${item.author.username}`}>
+                {(item.author.image === "") ? 
+                <img src="http://i.imgur.com/Qr71crq.jpg" />
+                :
+                <img src={item.author.image} />
+                }
+              </a>
+              <div className="info">
+                <a href={`/#/profile/${item.author.username}`} className="author">
+                  {item.author.username}
+                </a>
+                <span className="date">{formatDate(item.createdAt)}</span>
+              </div>
+              <button 
+                className={item.favorited ? "btn btn-primary btn-sm pull-xs-right" : "btn btn-outline-primary btn-sm pull-xs-right"}
+                onClick={item.favorited ? () => handleUnfavorite(item.slug) : () => handleFavorite(item.slug)}
+              >
+                <i className="ion-heart" /> {item.favoritesCount}
+              </button>
+            </div>
+            <a href={`/#/${item.slug}`} className="preview-link">
+              <h1>{item.title}</h1>
+              <p>{item.description}</p>
+              <span>Read more...</span>
+            </a>
+          </div>
+        </>
+      )
+    })
+    }</>
+  }
+
+  const handleFavorite = (slug: string) => {
+    try {
+      const response = fetch(`http://localhost:3000/api/articles/${slug}/favorite`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setFetched(!fetched);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const handleUnfavorite = (slug: string) => {
+    try {
+      const response = fetch(`http://localhost:3000/api/articles/${slug}/favorite`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setFetched(!fetched);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
@@ -150,55 +246,4 @@ export default function Profile() {
       </footer>
     </>
   );
-}
-
-const RenderArticles = (data: MultipleArticlesResponse) => {
-
-  /*
-  const data: Article = {
-    slug: string,
-    title: string,
-    description: string,
-    body: string,
-    tagList: string[],
-    createdAt: string,
-    updatedAt: string,
-    favorited: boolean,
-    favoritesCount: number,
-    author: Profile
-  }
-  */
-
-  return <>{data.articles.map((item) => {
-    return (
-      <>
-        <div className="article-preview" key={item.slug}>
-          <div className="article-meta">
-            <a href={`/#/profile/${item.author.username}`}>
-              {(item.author.image === "") ? 
-              <img src="http://i.imgur.com/Qr71crq.jpg" />
-              :
-              <img src={item.author.image} />
-              }
-            </a>
-            <div className="info">
-              <a href={`/#/profile/${item.author.username}`} className="author">
-                {item.author.username}
-              </a>
-              <span className="date">{formatDate(item.createdAt)}</span>
-            </div>
-            <button className="btn btn-outline-primary btn-sm pull-xs-right">
-              <i className="ion-heart" /> {item.favoritesCount}
-            </button>
-          </div>
-          <a href={`/#/${item.slug}`} className="preview-link">
-            <h1>{item.title}</h1>
-            <p>{item.description}</p>
-            <span>Read more...</span>
-          </a>
-        </div>
-      </>
-    )
-  })
-  }</>
 }
