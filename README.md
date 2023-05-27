@@ -4,7 +4,7 @@ This is mostly for me to recall what I did to set it up. I used MacOS at the tim
 To setup for MacOS again, uncomment this:
 
 ```
-#platform: linux/amd64
+    #platform: linux/amd64
 ```
 (p.s. the instruction belows assume you installed packages required to run the program)
 
