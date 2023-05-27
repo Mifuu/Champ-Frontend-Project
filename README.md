@@ -1,7 +1,7 @@
 # Assignment for Frontend Engineer job applicants
 
 This is mostly for me to recall what I did to set it up. I used MacOS at the time but it should be usable for window, currently. 
-To setup for MacOS again, uncomment this:
+To setup for MacOS again, uncomment this line in ```docker-compose.yml```:
 
 ```
     #platform: linux/amd64
