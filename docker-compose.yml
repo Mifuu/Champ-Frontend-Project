@@ -4,7 +4,7 @@ services:
     image: kalambagames/job-assignment-backend
     command: [ "/app/wait-for", "db:3306", "--", "npm", "run", "start" ]
     restart: always
-    platform: linux/amd64
+    #platform: linux/amd64
     environment:
       DATABASE_URL: mysql://root:password@db:3306/assignment
     ports:
