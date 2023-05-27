@@ -1,5 +1,46 @@
 # Assignment for Frontend Engineer job applicants
 
+This is mostly for me to recall what I did to set it up. I used MacOS at the time but it should be usable for window, currently. 
+To setup for MacOS again, uncomment this:
+
+```
+#platform: linux/amd64
+```
+(p.s. the instruction belows assume you installed packages required to run the program)
+
+## Setup Frontend
+
+If you are using MacOS machine, do these additional steps:
+```
+    export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+```
+```
+    nvm install 14.17.3    
+```
+
+To run frontend:
+```
+    npm start
+```
+
+## Setup Backend
+
+You can run the backend application by executing:
+
+    docker-compose up
+
+You will also need to initialise the database (first time you use it or any time you want to reset it to initial state), to do so run:
+
+    docker-compose run --rm api npm run db:reset
+
+After running the above commands, the API should be accessible on http://localhost:3000/.
+
+To clean up the backend application completely and start over, run:
+
+    docker-compose down --remove-orphans
+
 ## Background
 
 Your task is to implement a simple CRUD application. The application is based on [Conduit, "The mother of all demo apps"](https://github.com/gothinkster/realworld), which is a simple clone of [Medium.com](https://medium.com/). The demo of the application can be found at https://demo.realworld.io/.
